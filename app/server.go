@@ -8,7 +8,7 @@ import (
 )
 
 func main() {
-	l, err := net.Listen("tcp", "0.0.0.0:4221")
+	l, err := net.Listen("tcp", "0.0.0.0:4000")
 	if err != nil {
 		fmt.Println("Failed to bind to port 4221")
 		os.Exit(1)
@@ -31,18 +31,18 @@ func main() {
 	fields := strings.Fields(str)
 	path := fields[1]
 
-	if path == "/" {
-		_, err = c.Write([]byte("HTTP/1.1 200 OK\r\n\r\n"))
-		if err != nil {
-			fmt.Println("Error writing data: ", err.Error())
-		}
-	} else {
-		_, err = c.Write([]byte("HTTP/1.1 404 Not Found\r\n\r\n"))
-		if err != nil {
-			fmt.Println("Error writing data: ", err.Error())
-		}
-	}
+	randomString := strings.Split(strings.Trim(path, "/"), "/")[1]
 
+	// building a response
+	r := "HTTP/1.1 200 OK\r\n"
+	r += "Content-Type: text/plain\r\n"
+	r += "Content-Length: " + fmt.Sprint(len(randomString)) + "\r\n\r\n"
+	r += randomString
+
+	_, err = c.Write([]byte(r))
+	if err != nil {
+		fmt.Println("Error writing data: ", err.Error())
+	}
 	defer c.Close()
 
 }
