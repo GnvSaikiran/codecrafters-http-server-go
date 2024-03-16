@@ -3,10 +3,24 @@ package main
 import (
 	"flag"
 	"fmt"
+	"io/fs"
 	"net"
 	"os"
 	"strings"
 )
+
+func fileHandler(filePath, method, requestBody string) string {
+	if method == "POST" {
+		os.WriteFile(filePath, []byte(requestBody), fs.ModeAppend)
+		return "HTTP/1.1 201 Created\r\n\r\n"
+	}
+	data, err := os.ReadFile(filePath)
+	if err != nil {
+		return "HTTP/1.1 404 Not Found\r\n\r\n"
+	}
+	return fmt.Sprintf("HTTP/1.1 200 OK\r\nContent-Type: application/octet-stream\r\nContent-Length: %d\r\n\r\n%s",
+		len(data), data)
+}
 
 func handleConnection(c net.Conn, dir string) {
 	data := make([]byte, 2048)
@@ -18,7 +32,9 @@ func handleConnection(c net.Conn, dir string) {
 	// parsing request
 	str := string(data)
 	lines := strings.Split(str, "\r\n")
-	path := strings.Fields(lines[0])[1]
+	fields := strings.Fields(lines[0])
+	path := fields[1]
+	method := fields[0]
 	trimmedPath := strings.Trim(path, "/")
 	pathFields := strings.Split(trimmedPath, "/")
 
@@ -39,13 +55,8 @@ func handleConnection(c net.Conn, dir string) {
 	case "files":
 		fileName := pathFields[1]
 		filePath := fmt.Sprintf("%s/%s", dir, fileName)
-		data, err := os.ReadFile(filePath)
-		if err != nil {
-			response = "HTTP/1.1 404 Not Found\r\n\r\n"
-			break
-		}
-		response = fmt.Sprintf("HTTP/1.1 200 OK\r\nContent-Type: application/octet-stream\r\nContent-Length: %d\r\n\r\n%s",
-			len(data), data)
+		requestBody := lines[len(lines)-1]
+		response = fileHandler(filePath, method, requestBody)
 	default:
 		response = "HTTP/1.1 404 Not Found\r\n\r\n"
 	}
@@ -62,7 +73,7 @@ func main() {
 	dir := flag.String("directory", "", "directory name")
 	flag.Parse()
 
-	l, err := net.Listen("tcp", "0.0.0.0:4221")
+	l, err := net.Listen("tcp", "0.0.0.0:4000")
 	if err != nil {
 		fmt.Println("Failed to bind to port 4221")
 		os.Exit(1)
