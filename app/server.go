@@ -31,16 +31,16 @@ func main() {
 	fields := strings.Fields(str)
 	path := fields[1]
 
-	if path != "/" {
+	if path == "/" {
+		_, err = c.Write([]byte("HTTP/1.1 200 OK\r\n\r\n"))
+		if err != nil {
+			fmt.Println("Error writing data: ", err.Error())
+		}
+	} else {
 		_, err = c.Write([]byte("HTTP/1.1 404 Not Found\r\n\r\n"))
 		if err != nil {
 			fmt.Println("Error writing data: ", err.Error())
 		}
-	}
-
-	_, err = c.Write([]byte("HTTP/1.1 200 OK\r\n\r\n"))
-	if err != nil {
-		fmt.Println("Error writing data: ", err.Error())
 	}
 
 	defer c.Close()
