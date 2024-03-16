@@ -27,9 +27,10 @@ func main() {
 	if err != nil {
 		fmt.Println("Error reading data: ", err.Error())
 	}
+
 	str := string(data)
-	fields := strings.Fields(str)
-	path := fields[1]
+	lines := strings.Split(str, "\r\n")
+	path := strings.Fields(lines[0])[1]
 	trimmedPath := strings.Trim(path, "/")
 	pathFields := strings.Split(trimmedPath, "/")
 
@@ -40,10 +41,12 @@ func main() {
 	case "echo":
 		i := strings.Index(trimmedPath, "/")
 		randomString := trimmedPath[i+1:]
-		response = "HTTP/1.1 200 OK\r\n"
-		response += "Content-Type: text/plain\r\n"
-		response += "Content-Length: " + fmt.Sprint(len(randomString)) + "\r\n\r\n"
-		response += randomString
+		response = fmt.Sprintf("HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: %d\r\n\r\n%s",
+			len(randomString), randomString)
+	case "user-agent":
+		userAgent := strings.Fields(lines[2])[1]
+		response = fmt.Sprintf("HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: %d\r\n\r\n%s",
+			len(userAgent), userAgent)
 	default:
 		response = "HTTP/1.1 404 Not Found\r\n\r\n"
 	}
