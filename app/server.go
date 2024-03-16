@@ -8,7 +8,7 @@ import (
 )
 
 func main() {
-	l, err := net.Listen("tcp", "0.0.0.0:4000")
+	l, err := net.Listen("tcp", "0.0.0.0:4221")
 	if err != nil {
 		fmt.Println("Failed to bind to port 4221")
 		os.Exit(1)
@@ -30,16 +30,23 @@ func main() {
 	str := string(data)
 	fields := strings.Fields(str)
 	path := fields[1]
+	pathFields := strings.Split(strings.Trim(path, "/"), "/")
 
-	randomString := strings.Split(strings.Trim(path, "/"), "/")[1]
+	var response string
+	switch pathFields[0] {
+	case "":
+		response = "HTTP/1.1 200 OK\r\n\r\n"
+	case "echo":
+		randomString := pathFields[1]
+		response = "HTTP/1.1 200 OK\r\n"
+		response += "Content-Type: text/plain\r\n"
+		response += "Content-Length: " + fmt.Sprint(len(randomString)) + "\r\n\r\n"
+		response += randomString
+	default:
+		response = "HTTP/1.1 400 Not Found\r\n\r\n"
+	}
 
-	// building a response
-	r := "HTTP/1.1 200 OK\r\n"
-	r += "Content-Type: text/plain\r\n"
-	r += "Content-Length: " + fmt.Sprint(len(randomString)) + "\r\n\r\n"
-	r += randomString
-
-	_, err = c.Write([]byte(r))
+	_, err = c.Write([]byte(response))
 	if err != nil {
 		fmt.Println("Error writing data: ", err.Error())
 	}
