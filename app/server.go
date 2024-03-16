@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"flag"
 	"fmt"
 	"io/fs"
@@ -11,7 +12,8 @@ import (
 
 func fileHandler(filePath, method, requestBody string) string {
 	if method == "POST" {
-		os.WriteFile(filePath, []byte(requestBody), fs.ModeAppend)
+		b := bytes.Trim([]byte(requestBody), "\x00")
+		os.WriteFile(filePath, b, fs.ModeAppend)
 		return "HTTP/1.1 201 Created\r\n\r\n"
 	}
 	data, err := os.ReadFile(filePath)
