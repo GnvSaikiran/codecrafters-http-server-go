@@ -43,7 +43,7 @@ func main() {
 		response += "Content-Length: " + fmt.Sprint(len(randomString)) + "\r\n\r\n"
 		response += randomString
 	default:
-		response = "HTTP/1.1 400 Not Found\r\n\r\n"
+		response = "HTTP/1.1 404 Not Found\r\n\r\n"
 	}
 
 	_, err = c.Write([]byte(response))
