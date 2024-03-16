@@ -30,14 +30,16 @@ func main() {
 	str := string(data)
 	fields := strings.Fields(str)
 	path := fields[1]
-	pathFields := strings.Split(strings.Trim(path, "/"), "/")
+	trimmedPath := strings.Trim(path, "/")
+	pathFields := strings.Split(trimmedPath, "/")
 
 	var response string
 	switch pathFields[0] {
 	case "":
 		response = "HTTP/1.1 200 OK\r\n\r\n"
 	case "echo":
-		randomString := pathFields[1]
+		i := strings.Index(trimmedPath, "/")
+		randomString := trimmedPath[i+1:]
 		response = "HTTP/1.1 200 OK\r\n"
 		response += "Content-Type: text/plain\r\n"
 		response += "Content-Length: " + fmt.Sprint(len(randomString)) + "\r\n\r\n"
